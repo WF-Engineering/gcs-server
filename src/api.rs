@@ -36,7 +36,7 @@ pub async fn upload_object(
 
   let saved_path = Path::new(name)
     .file_name()
-    .ok_or(ApiError::MissingFilename(name.to_string()))?;
+    .ok_or_else(|| ApiError::MissingFilename(name.to_string()))?;
 
   let mut file = fs::File::create(saved_path)?;
   file.write_all(&payload)?;
