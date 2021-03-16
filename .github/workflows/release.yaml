@@ -1,0 +1,98 @@
+name: Release GCS Server
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  PROJECT_ID: ${{ secrets.GCE_PROJECT }}
+  GKE_CLUSTER: wf-cluster-1
+  GKE_ZONE: asia-east1-a
+  APP_PROD_ENV_FILE: ${{ secrets.APP_PROD_ENV_FILE }}
+
+jobs:
+  build-server:
+    name: Build GCS Server Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup GCP CLI
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          version: "290.0.1"
+          project_id: ${{ secrets.GCE_PROJECT }}
+          service_account_key: ${{ secrets.GCE_SA_KEY }}
+
+      - name: Configure Docker and Kubernetes
+        run: |-
+          gcloud --quiet auth configure-docker
+          gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE"
+
+      - name: Set Environment Variables
+        run: |-
+          cargo generate-lockfile
+          VERSION="v$(cargo pkgid --manifest-path ./Cargo.toml | cut -d'#' -f2)"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "IMAGE=asia.gcr.io/${{ secrets.GCE_PROJECT }}/gcs-server:$VERSION" >> $GITHUB_ENV
+
+      - name: Build
+        run: |-
+          docker build -f Dockerfile --tag "$IMAGE" .
+          docker push "$IMAGE"
+
+  deploy-kubernetes:
+    name: Deploy to Kubernetes
+    runs-on: ubuntu-latest
+    needs: [build-server]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Checkout Kubernetes
+        uses: actions/checkout@v2
+        with:
+          repository: WF-Engineering/kubernetes
+          token: ${{ secrets.K8S_REPO_TOKEN }}
+          path: kubernetes
+
+      - name: Setup GCP CLI
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          version: "290.0.1"
+          project_id: ${{ secrets.GCE_PROJECT }}
+          service_account_key: ${{ secrets.GCE_SA_KEY }}
+
+      - name: Configure Docker and Kubernetes
+        run: |-
+          gcloud --quiet auth configure-docker
+          gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE"
+
+      - name: Setup Kustomize
+        run: |-
+          curl -sfLo kustomize https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64
+          sudo chmod 755 ./kustomize
+          sudo mv ./kustomize /usr/local/bin/kustomize
+
+      - name: Set Environment Variables
+        run: |-
+          cargo generate-lockfile
+          VERSION="v$(cargo pkgid --manifest-path ./Cargo.toml | cut -d'#' -f2)"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "IMAGE=asia.gcr.io/${{ secrets.GCE_PROJECT }}/gcs-server:$VERSION" >> $GITHUB_ENV
+
+      - name: Deploy to Release GCS Server
+        working-directory: kubernetes/projects/gcs-server/overlays/release
+        run: |-
+          echo "$APP_PROD_ENV_FILE" > .env
+          kustomize edit set image "wowfood/gcs-server=$IMAGE"
+          kustomize build . | kubectl apply -f -
+
+      - name: Deploy to Testing GCS Server
+        working-directory: kubernetes/projects/gcs-server/overlays/testing
+        run: |-
+          echo "$APP_DEV_ENV_FILE" > .env
+          kustomize edit set image "wowfood/gcs-server=$IMAGE"
+          kustomize build . | kubectl apply -f -
