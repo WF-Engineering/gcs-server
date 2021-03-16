@@ -5,7 +5,7 @@ use actix_web::{HttpResponse, ResponseError};
 #[derive(Debug, thiserror::Error)]
 pub enum ApiError {
   #[error("IO Error: {0:?}")]
-  IOError(io::Error),
+  IoError(io::Error),
 
   #[error("Missing header key [{0:?}] from rquest")]
   MissingHeader(&'static str),
@@ -40,7 +40,7 @@ impl From<google_storage1::Error> for ApiError {
 
 impl From<io::Error> for ApiError {
   fn from(v: io::Error) -> Self {
-    ApiError::IOError(v)
+    ApiError::IoError(v)
   }
 }
 
@@ -49,7 +49,7 @@ impl ResponseError for ApiError {
     error!("{}", &self);
 
     match self {
-      ApiError::IOError(_) => HttpResponse::InternalServerError(),
+      ApiError::IoError(_) => HttpResponse::InternalServerError(),
       ApiError::MissingHeader(_) => HttpResponse::BadRequest(),
       ApiError::ServiceAccountNotFound => HttpResponse::InternalServerError(),
       ApiError::MimeTypeParsingError => HttpResponse::BadRequest(),
