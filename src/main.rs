@@ -8,7 +8,7 @@ mod config;
 use std::io;
 
 use actix_web::{middleware, web, App, HttpServer};
-pub use config::{Config, Env};
+use config::{Config, Env};
 use dotenv::dotenv;
 
 #[actix_rt::main]
@@ -16,12 +16,12 @@ async fn main() -> io::Result<()> {
   dotenv().ok();
   env_logger::init();
 
-  let config = envy::from_env::<Config>()
-    .map_err(|err| error!("Deserilize config err: {:?}", err))
-    .unwrap();
-
   let env = envy::from_env::<Env>()
     .map_err(|err| error!("Deserilize env err: {:?}", err))
+    .unwrap();
+
+  let config = envy::from_env::<Config>()
+    .map_err(|err| error!("Deserilize config err: {:?}", err))
     .unwrap();
 
   debug!("Running at {}", &env.to_address());

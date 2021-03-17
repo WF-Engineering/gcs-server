@@ -1,6 +1,6 @@
 [package]
 name = "gcs-server"
-version = "0.1.0"
+version = "0.3.0"
 authors = ["Arco Hsieh <yiyezhihen@gmail.com>"]
 edition = "2018"
 license = "MIT"
@@ -14,6 +14,7 @@ repository = "https://github.com/WF-Engineering/gcs-server"
 [dependencies]
 actix-rt = "1.0.0"
 actix-web = "2.0.0"
+base64 = "0.12.0"
 bytes = "0.5.6"
 chrono = { version = "0.4.10", features = ["serde"] }
 dotenv = "0.15.0"

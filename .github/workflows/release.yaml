@@ -10,6 +10,7 @@ env:
   GKE_CLUSTER: wf-cluster-1
   GKE_ZONE: asia-east1-a
   APP_PROD_ENV_FILE: ${{ secrets.APP_PROD_ENV_FILE }}
+  APP_DEV_ENV_FILE: ${{ secrets.APP_DEV_ENV_FILE }}
 
 jobs:
   build-server:
@@ -80,7 +81,6 @@ jobs:
         run: |-
           cargo generate-lockfile
           VERSION="v$(cargo pkgid --manifest-path ./Cargo.toml | cut -d'#' -f2)"
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "IMAGE=asia.gcr.io/${{ secrets.GCE_PROJECT }}/gcs-server:$VERSION" >> $GITHUB_ENV
 
       - name: Deploy to Release GCS Server

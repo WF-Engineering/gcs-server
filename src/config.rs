@@ -10,7 +10,10 @@ pub struct Config {
 
 impl Config {
   pub fn sa_to_json(&self) -> serde_json::Result<ServiceAccountKey> {
-    serde_json::from_str(&self.service_account)
+    let decoded =
+      base64::decode_config(&self.service_account, base64::URL_SAFE_NO_PAD)
+        .unwrap();
+    serde_json::from_slice(&decoded)
   }
 }
 
