@@ -12,9 +12,8 @@ repository = "https://github.com/WF-Engineering/gcs-server"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-actix-multipart = "0.2"
-actix-rt = "1.0.0"
-actix-web = "2.0.0"
+actix-multipart = "0.3"
+actix-web = "3.3"
 base64 = "0.12.0"
 bytes = "0.5.6"
 chrono = { version = "0.4.10", features = ["serde"] }

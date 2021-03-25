@@ -11,7 +11,7 @@ use actix_web::{middleware, web, App, HttpServer};
 use config::{Config, Env};
 use dotenv::dotenv;
 
-#[actix_rt::main]
+#[actix_web::main]
 async fn main() -> io::Result<()> {
   dotenv().ok();
   env_logger::init();
