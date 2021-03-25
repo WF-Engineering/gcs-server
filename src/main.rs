@@ -24,8 +24,6 @@ async fn main() -> io::Result<()> {
     .map_err(|err| error!("Deserilize config err: {:?}", err))
     .unwrap();
 
-  debug!("Running at {}", &env.to_address());
-
   HttpServer::new(move || {
     App::new()
       .data(config.clone())
