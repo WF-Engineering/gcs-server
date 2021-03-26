@@ -31,6 +31,9 @@ pub enum ApiError {
 
   #[error("Encounter MultipartError")]
   MultipartError,
+
+  #[error("Can't delete object")]
+  DeleteObjectFailed,
 }
 
 impl From<hyper::client::Response> for ApiError {
@@ -84,6 +87,7 @@ impl ResponseError for ApiError {
       ApiError::MissingFilename(_) => HttpResponse::InternalServerError(),
       ApiError::BlockingError => HttpResponse::ServiceUnavailable(),
       ApiError::MultipartError => HttpResponse::NotAcceptable(),
+      ApiError::DeleteObjectFailed => HttpResponse::InternalServerError(),
     }
     .body(self.to_string())
   }

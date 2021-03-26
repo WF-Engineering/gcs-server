@@ -11,6 +11,7 @@ use hyper_rustls::TlsClient;
 use yup_oauth2 as oauth2;
 
 use super::api_error::ApiError;
+use super::body;
 use super::config::Config;
 
 pub async fn upload_object(
@@ -88,5 +89,40 @@ pub async fn upload_object(
     Ok(HttpResponse::Ok().json(object))
   } else {
     Err(ApiError::NotSuccessResponse(response))
+  }
+}
+
+pub async fn delete_object(
+  config: web::Data<Config>,
+  payload: web::Json<body::DeleteObject>,
+) -> Result<HttpResponse, ApiError> {
+  let client =
+    hyper::Client::with_connector(HttpsConnector::new(TlsClient::new()));
+
+  let client_secret = config.sa_to_json().map_err(|err| {
+    error!("err: {:?}", err);
+    ApiError::ServiceAccountNotFound
+  })?;
+  let authenticator = oauth2::ServiceAccountAccess::new(client_secret, client);
+  let client =
+    hyper::Client::with_connector(HttpsConnector::new(TlsClient::new()));
+
+  let hub = Storage::new(client, authenticator);
+
+  let payload = payload.into_inner();
+  let bucket = payload.bucket;
+  let object = payload.object;
+
+  let response = hub.objects().delete(&bucket, &object).doit();
+
+  match response {
+    Ok(response) if response.status.is_success() => {
+      Ok(HttpResponse::NoContent().finish())
+    }
+    Ok(response) => Err(ApiError::NotSuccessResponse(response)),
+    Err(err) => {
+      error!("delete_object err: {:?}", err);
+      Err(ApiError::DeleteObjectFailed)
+    }
   }
 }
