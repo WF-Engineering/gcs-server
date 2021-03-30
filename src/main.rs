@@ -35,7 +35,7 @@ async fn main() -> io::Result<()> {
       )
       .service(
         web::resource("/delete_object")
-          .route(web::delete().to(api::delete_object)),
+          .route(web::post().to(api::delete_object)),
       )
   })
   .bind(&env.to_address())?
