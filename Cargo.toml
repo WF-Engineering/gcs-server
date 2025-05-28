@@ -1,6 +1,6 @@
 [package]
 name = "gcs-server"
-version = "0.5.4"
+version = "0.5.5"
 authors = ["Arco Hsieh <yiyezhihen@gmail.com>"]
 edition = "2018"
 license = "MIT"
@@ -12,21 +12,21 @@ repository = "https://github.com/WF-Engineering/gcs-server"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-actix-multipart = "0.3"
-actix-web = "3.3"
-base64 = "0.12.0"
-bytes = "0.5.6"
-chrono = { version = "0.4.10", features = ["serde"] }
-dotenv = "0.15.0"
-env_logger = "0.7.0"
+actix-web = "4.0"
+actix-multipart = "0.4"
+base64 = "0.21"
+bytes = "1"
+chrono = { version = "0.4", features = ["serde"] }
+dotenv = "0.15"
+env_logger = "0.11"
 envy = "0.4"
-futures = "0.3.1"
-google-storage1 = "1.0"
-hyper = "^0.10"
-hyper-rustls = "^0.6"
+futures = "0.3"
+google-storage1 = "5.0"          # ← 現在主流是 5.x，請查 crates.io 最新
+hyper = "0.14"
+hyper-rustls = "0.24"
 log = "0.4"
-sanitize-filename = "0.3"
-serde = "^1.0"
-serde_json = "^1.0"
+sanitize-filename = "0.5"
+serde = "1"
+serde_json = "1"
 thiserror = "1.0"
-yup-oauth2 = "^1.0"
+yup-oauth2 = "8"
