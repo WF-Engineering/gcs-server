@@ -1,14 +1,15 @@
-use std::{fmt, io};
+use std::io;
 
 use actix_web::error::BlockingError;
 use actix_web::{HttpResponse, ResponseError};
+use hyper::{Response, Body};
 
 #[derive(Debug, thiserror::Error)]
 pub enum ApiError {
   #[error("IO Error: {0:?}")]
   IoError(io::Error),
 
-  #[error("Missing header key [{0:?}] from rquest")]
+  #[error("Missing header key [{0:?}] from request")]
   MissingHeader(&'static str),
 
   #[error("Service account not found")]
@@ -20,8 +21,11 @@ pub enum ApiError {
   #[error("Failed to upload object cause: {0:?}")]
   UploadObjectError(google_storage1::Error),
 
+  #[error("Failed to upload file (unknown error)")]
+  UploadFailed,
+
   #[error("GCS response is not in 200 ..< 300, {0:?}")]
-  NotSuccessResponse(hyper::client::Response),
+  NotSuccessResponse(Response<Body>),
 
   #[error("Failed to find filename by [{0:?}]")]
   MissingFilename(String),
@@ -36,8 +40,8 @@ pub enum ApiError {
   DeleteObjectFailed,
 }
 
-impl From<hyper::client::Response> for ApiError {
-  fn from(v: hyper::client::Response) -> Self {
+impl From<Response<Body>> for ApiError {
+  fn from(v: Response<Body>) -> Self {
     ApiError::NotSuccessResponse(v)
   }
 }
@@ -54,15 +58,10 @@ impl From<io::Error> for ApiError {
   }
 }
 
-impl<T> From<BlockingError<T>> for ApiError
-where
-  T: Into<ApiError> + fmt::Debug,
-{
-  fn from(err: BlockingError<T>) -> Self {
-    match err {
-      BlockingError::Error(err) => err.into(),
-      BlockingError::Canceled => ApiError::BlockingError,
-    }
+impl From<BlockingError> for ApiError {
+  fn from(err: BlockingError) -> Self {
+    error!("BlockingError: {:?}", err);
+    ApiError::BlockingError
   }
 }
 
@@ -83,12 +82,13 @@ impl ResponseError for ApiError {
       ApiError::ServiceAccountNotFound => HttpResponse::InternalServerError(),
       ApiError::MimeTypeParsingError => HttpResponse::BadRequest(),
       ApiError::UploadObjectError(_) => HttpResponse::InternalServerError(),
+      ApiError::UploadFailed => HttpResponse::InternalServerError(),
       ApiError::NotSuccessResponse(_) => HttpResponse::InternalServerError(),
       ApiError::MissingFilename(_) => HttpResponse::InternalServerError(),
       ApiError::BlockingError => HttpResponse::ServiceUnavailable(),
       ApiError::MultipartError => HttpResponse::NotAcceptable(),
       ApiError::DeleteObjectFailed => HttpResponse::InternalServerError(),
     }
-    .body(self.to_string())
+      .body(self.to_string())
   }
 }

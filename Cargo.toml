@@ -1,6 +1,6 @@
 [package]
 name = "gcs-server"
-version = "0.5.5"
+version = "0.5.6"
 authors = ["Arco Hsieh <yiyezhihen@gmail.com>"]
 edition = "2018"
 license = "MIT"
@@ -14,11 +14,11 @@ repository = "https://github.com/WF-Engineering/gcs-server"
 [dependencies]
 actix-web = "4.0"
 actix-multipart = "0.4"
-base64 = "0.21"
+base64 = "0.12.3"
 bytes = "1"
 chrono = { version = "0.4", features = ["serde"] }
 dotenv = "0.15"
-env_logger = "0.11"
+env_logger = { version = "0.11", default-features = false }
 envy = "0.4"
 futures = "0.3"
 google-storage1 = "5.0"          # ← 現在主流是 5.x，請查 crates.io 最新
@@ -29,4 +29,4 @@ sanitize-filename = "0.5"
 serde = "1"
 serde_json = "1"
 thiserror = "1.0"
-yup-oauth2 = "8"
+yup-oauth2 = "9.0"
