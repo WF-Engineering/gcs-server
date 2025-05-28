@@ -788,7 +788,7 @@ dependencies = [
 
 [[package]]
 name = "gcs-server"
-version = "0.5.3"
+version = "0.5.4"
 dependencies = [
  "actix-multipart",
  "actix-web",
@@ -1586,7 +1586,7 @@ dependencies = [
 
 [[package]]
 name = "ring"
-version = "0.17.x"
+version = "0.17.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2c4db68a2e35f3497146b7e4563df7d4773a2433230c5e4b448328e31740458a"
 dependencies = [
